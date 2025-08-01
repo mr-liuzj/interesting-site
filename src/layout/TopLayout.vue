@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import NavAction from './components/NavAction.vue';
-import MENU_CONFIG from '@/constants/menu';
 import { ElMenuItem, ElSubMenu } from 'element-plus';
 import { map } from 'lodash';
-import { h, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { h, ref, watchEffect } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import useMenu from '@/hooks/useMenu';
 
 defineOptions({
   name: 'TopLayout', // 顶部菜单布局
 });
 const router = useRouter();
+const route = useRoute();
 
-const menuConfig = ref<MenuItem[]>(MENU_CONFIG);
+const { menuConfig } = useMenu();
+const currentPath = ref('');
 
 function handleMenuItemClick(item: MenuItem) {
+  if (!item.path) return;
+
   router.push(item.path);
 }
 
@@ -51,24 +55,34 @@ function renderMenuNode() {
       if (item.children?.length) {
         return renderSubMenu(item);
       }
+
       return renderMenuItem(item);
     });
   }
 
-  return renderNodes(menuConfig.value);
+  return renderNodes(menuConfig.value ?? []);
 }
+
+watchEffect(() => {
+  currentPath.value = route.path;
+});
 </script>
 
 <template>
   <el-container class="top-layout-wrapper">
     <el-header class="top-layout-header">
-      <div class="top-layout-header-logo"> 自用后台模板 </div>
+      <div class="top-layout-header-logo">
+        <SvgIcon name="xigua" size="24px" />
+        <span>自用学习项目</span>
+      </div>
 
       <div class="top-layout-header-menu-wrapper">
         <el-menu
           mode="horizontal"
           ellipsis
-          :popper-offset="16"
+          :popper-offset="12"
+          :key="currentPath"
+          :default-active="currentPath"
           class="top-layout-header-menu"
         >
           <component :is="renderMenuNode" />
@@ -94,17 +108,20 @@ function renderMenuNode() {
 
 .top-layout-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 0 20px;
   background-color: #fff;
-  box-shadow: 0 0 8px 2px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 14px 1px rgba(0, 0, 0, 0.08);
   height: 60px;
   overflow: hidden;
 
   .top-layout-header-logo {
     display: flex;
     align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
   }
 
   .top-layout-header-menu-wrapper {
@@ -119,6 +136,7 @@ function renderMenuNode() {
 
     .top-layout-header-menu {
       max-width: 100%;
+      width: 100%;
     }
   }
 

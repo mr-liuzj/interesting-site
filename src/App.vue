@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Layout from '@/layout/index.vue';
-
 defineOptions({
   name: 'App',
 });
@@ -8,7 +6,7 @@ defineOptions({
 
 <template>
   <div class="app-container">
-    <Layout />
+    <router-view />
   </div>
 </template>
 

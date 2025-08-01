@@ -15,6 +15,5 @@ export default function setupPlugins(app: App) {
   // 注册自定义组件
   setupCustomComponents(app);
   // 注册路由
-  console.log('setupRouter');
   setupRouter(app);
 }
