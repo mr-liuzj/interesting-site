@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import NavAction from './components/NavAction.vue';
 import { ElMenuItem, ElSubMenu } from 'element-plus';
 import { map } from 'lodash';
 import { h, ref, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import useMenu from '@/hooks/useMenu';
+import NavAction from './components/NavAction.vue';
+import SvgIcon from '@/components/SvgIcon/index.vue';
 
 defineOptions({
   name: 'TopLayout', // 顶部菜单布局
 });
+
 const router = useRouter();
 const route = useRoute();
 
@@ -22,6 +24,19 @@ function handleMenuItemClick(item: MenuItem) {
 }
 
 function renderMenuNode() {
+  function renderTitle(item: MenuItem) {
+    if (!item.icon) return item.title;
+
+    return [
+      h(SvgIcon, {
+        name: item.icon,
+        size: '18px',
+        style: 'margin-right: 6px;',
+      }),
+      h('span', item.title),
+    ];
+  }
+
   function renderMenuItem(item: MenuItem) {
     return h(
       ElMenuItem,
@@ -30,7 +45,7 @@ function renderMenuNode() {
         index: item.path,
         onClick: () => handleMenuItemClick(item),
       },
-      () => item.title,
+      () => renderTitle(item),
     );
   }
 
@@ -45,7 +60,7 @@ function renderMenuNode() {
         default: item.children?.length
           ? () => renderNodes(item.children!)
           : undefined,
-        title: () => item.title,
+        title: () => renderTitle(item),
       },
     );
   }
@@ -73,7 +88,7 @@ watchEffect(() => {
     <el-header class="top-layout-header">
       <div class="top-layout-header-logo">
         <SvgIcon name="xigua" size="24px" />
-        <span>自用学习项目</span>
+        <span>Hello</span>
       </div>
 
       <div class="top-layout-header-menu-wrapper">
