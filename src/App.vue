@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import Layout from '@/layout/index.vue';
+
 defineOptions({
   name: 'App',
 });
 </script>
 
 <template>
-  <div class="app-container"> app </div>
+  <div class="app-container">
+    <Layout />
+  </div>
 </template>
 
 <style scoped lang="less">
