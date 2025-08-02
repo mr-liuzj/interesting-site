@@ -10,7 +10,9 @@ export const DEFAULT_ZOOM = 1;
 /** 最小缩放比例 */
 export const MIN_ZOOM = 0.5;
 /** 最大缩放比例 */
-export const MAX_ZOOM = 3;
+export const MAX_ZOOM = 4;
+/** 默认动画时间 */
+export const DEFAULT_ANIMATION_DURATION = 300;
 
 export function useGraph(
   container: Ref<HTMLElement | undefined>,
@@ -32,7 +34,14 @@ export function useGraph(
       autoResize: true,
       zoom: DEFAULT_ZOOM,
       zoomRange: [MIN_ZOOM, MAX_ZOOM],
-      behaviors: ['zoom-canvas', 'drag-canvas'],
+      behaviors: [
+        {
+          type: 'zoom-canvas',
+          key: 'zoom-canvas', // 为交互指定标识符，方便动态更新
+          sensitivity: 0.2,
+        },
+        'drag-canvas',
+      ],
       data: {
         nodes: [
           {
