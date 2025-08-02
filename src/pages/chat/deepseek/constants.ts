@@ -5,7 +5,7 @@
 // API 相关常量
 export const API_URL = 'https://api.deepseek.com/v1/chat/completions';
 export const MODEL = 'deepseek-chat';
-export const MAX_TOKENS = 2000;
+export const MAX_TOKENS = 4096;
 export const TEMPERATURE = 0.7;
 
 // 存储相关常量
