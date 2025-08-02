@@ -158,5 +158,15 @@ watchEffect(() => {
   .top-layout-header-action {
     width: max-content;
   }
+
+  ::v-deep(.el-sub-menu.el-sub-menu__hide-arrow:last-child) {
+    .el-sub-menu__title {
+      padding-right: var(--el-menu-base-level-padding);
+    }
+  }
+}
+
+.top-layout-content {
+  padding: 0;
 }
 </style>
