@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@antv/g':
+        specifier: ^6.1.28
+        version: 6.1.28
       '@antv/g6':
         specifier: ^5.0.49
         version: 5.0.49(workerize-loader@2.0.2(webpack@5.101.0))

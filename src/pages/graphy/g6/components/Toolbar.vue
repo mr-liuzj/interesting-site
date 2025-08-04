@@ -75,9 +75,7 @@ defineOptions({
 /** 获取 graphInstance 实例 父级graph实例存在后才会渲染 */
 const graphInstance = inject<Ref<Graph>>('graphInstance')!;
 
-const zoom = ref(DEFAULT_ZOOM);
-
-const graph = computed(() => graphInstance?.value);
+const zoom = ref(graphInstance.value?.getZoom() || DEFAULT_ZOOM);
 
 function formatZoomPercent(value: number) {
   return `${(value * 100).toFixed(0)}%`;

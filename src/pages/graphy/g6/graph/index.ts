@@ -1,5 +1,7 @@
 import { Graph } from '@antv/g6';
-import { onMounted, Ref, shallowRef } from 'vue';
+import { onMounted, Ref, shallowRef, h, getCurrentInstance } from 'vue';
+import { edgeConfig } from './edges';
+import { registerVueNode } from './nodes';
 
 export interface useGraphOptions {
   onGraphReady?: (graph: Graph) => void;
@@ -14,11 +16,19 @@ export const MAX_ZOOM = 4;
 /** 默认动画时间 */
 export const DEFAULT_ANIMATION_DURATION = 300;
 
+const DEFAULT_NODE_STYLE = {
+  ports: [{ placement: 'top' }, { placement: 'bottom' }],
+  size: [240, 100],
+};
+
 export function useGraph(
   container: Ref<HTMLElement | undefined>,
   options?: useGraphOptions,
 ) {
   const graphInstance = shallowRef<Graph>();
+  const vueInstance = getCurrentInstance();
+
+  registerVueNode();
 
   onMounted(() => {
     if (!container.value) {
@@ -42,18 +52,36 @@ export function useGraph(
         },
         'drag-canvas',
       ],
+      edge: edgeConfig,
+      layout: {
+        type: 'antv-dagre',
+        rankdir: 'TB',
+        nodesep: 100,
+        ranksep: 60,
+        controlPoints: true,
+      },
       data: {
-        nodes: [
-          {
-            id: 'node-1',
-            style: { x: 50, y: 100 },
-          },
-          {
-            id: 'node-2',
-            style: { x: 150, y: 100 },
-          },
+        nodes: Array.from(
+          { length: 8 },
+          (_, i) =>
+            ({
+              id: `node-${i + 1}`,
+              type: 'vue-node',
+              style: {
+                ...DEFAULT_NODE_STYLE,
+                appContext: vueInstance?.root?.appContext,
+              },
+            }) as any,
+        ),
+        edges: [
+          { source: 'node-1', target: 'node-2' },
+          { source: 'node-1', target: 'node-3' },
+          { source: 'node-2', target: 'node-4' },
+          { source: 'node-2', target: 'node-5' },
+          { source: 'node-2', target: 'node-6' },
+          { source: 'node-3', target: 'node-7' },
+          { source: 'node-4', target: 'node-8' },
         ],
-        edges: [{ id: 'edge-1', source: 'node-1', target: 'node-2' }],
       },
     });
 
