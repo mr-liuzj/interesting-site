@@ -31,21 +31,6 @@
         <el-icon :size="18"><Aim /></el-icon>
       </div>
     </el-tooltip>
-    <el-tooltip content="添加" placement="bottom" :show-after="300">
-      <div class="graphy-g6-toolbar-item">
-        <el-icon :size="18"><Plus /></el-icon>
-      </div>
-    </el-tooltip>
-    <el-tooltip content="编辑" placement="bottom" :show-after="300">
-      <div class="graphy-g6-toolbar-item">
-        <el-icon :size="18"><Edit /></el-icon>
-      </div>
-    </el-tooltip>
-    <el-tooltip content="清空画布" placement="bottom" :show-after="300">
-      <div class="graphy-g6-toolbar-item">
-        <el-icon :size="18"><Refresh /></el-icon>
-      </div>
-    </el-tooltip>
   </div>
 </template>
 

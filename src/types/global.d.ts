@@ -6,3 +6,7 @@ interface MenuItem {
   component?: () => Promise<DefineComponent>;
   children?: MenuItem[];
 }
+
+interface Window {
+  __graph?: import('@antv/g6').Graph;
+}

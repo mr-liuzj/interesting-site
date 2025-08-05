@@ -8,7 +8,7 @@ export const edgeConfig: GraphOptions['edge'] = {
     radius: 8,
     router: {
       type: 'orth',
-      padding: 20,
+      padding: 30,
     },
   },
 };
