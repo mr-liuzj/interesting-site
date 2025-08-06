@@ -14,8 +14,9 @@ import { useGraph, CUSTOM_EVENTS } from './graph';
 import Toolbar from './components/Toolbar.vue';
 import ModifyNodeDialog from './components/ModifyDialog.vue';
 import { RootDataItem } from './graph/RootData';
-import { uniqueId } from 'lodash';
-// import { GraphEvent } from '@antv/g6';
+import { uniqueId, differenceBy, differenceWith } from 'lodash';
+import { EdgeData, NodeData } from '@antv/g6';
+import { ElMessageBox } from 'element-plus';
 
 defineOptions({
   name: 'GraphyG6',
@@ -23,13 +24,14 @@ defineOptions({
 
 const modifyNodeDialog = shallowRef<InstanceType<typeof ModifyNodeDialog>>();
 const container = shallowRef<HTMLElement>();
-const { graphInstance, getRootDataItem, createNodeData } = useGraph(container, {
-  onGraphReady() {
-    state.isReady = true;
+const { graphInstance, getRootDataItem, createNodeData, generateNodeAndEdge } =
+  useGraph(container, {
+    onGraphReady() {
+      state.isReady = true;
 
-    bindGraphEvents();
-  },
-});
+      bindGraphEvents();
+    },
+  });
 
 const state = reactive({
   isReady: false,
@@ -57,6 +59,128 @@ function bindGraphEvents() {
       data,
     });
   });
+
+  graphInstance.value?.on(
+    CUSTOM_EVENTS.DELETE_NODE,
+    // @ts-ignore
+    async (data: RootDataItem) => {
+      if (!data.pid) return;
+
+      const parentNode = getRootDataItem(data.pid);
+
+      if (!parentNode) return;
+
+      await ElMessageBox.confirm('确定删除该节点以及节点下的所有吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
+
+      parentNode.children = parentNode.children?.filter(
+        (item) => item.id !== data.id,
+      );
+
+      const { nodes: newNodes, edges: newEdges } = generateNodeAndEdge();
+      const { nodes: oldNodes, edges: oldEdges } =
+        graphInstance.value?.getData()!;
+
+      const { diffNodes, diffEdges } = getDiffData({
+        oldNodes,
+        newNodes,
+        oldEdges,
+        newEdges,
+      });
+
+      graphInstance.value?.removeData({
+        nodes: diffNodes.map((item) => item.id!),
+        edges: diffEdges.map((item) => item.id!),
+      });
+      graphInstance.value?.render();
+    },
+  );
+
+  // @ts-ignore
+  graphInstance.value?.on(CUSTOM_EVENTS.EXPAND_NODE, (data: RootDataItem) => {
+    const id = data.id;
+    const dataNode = getRootDataItem(id);
+    const currentNode = graphInstance.value?.getNodeData(id);
+
+    if (!dataNode) return;
+
+    dataNode.hideChildren = false;
+    const { nodes: newNodes, edges: newEdges } = generateNodeAndEdge();
+    const { nodes: oldNodes, edges: oldEdges } =
+      graphInstance.value?.getData()!;
+
+    const { diffNodes, diffEdges } = getDiffData({
+      oldNodes: newNodes,
+      newNodes: oldNodes,
+      oldEdges: newEdges,
+      newEdges: oldEdges,
+    });
+
+    graphInstance.value?.updateNodeData([
+      Object.assign({}, currentNode, {
+        data: dataNode,
+      }),
+    ]);
+    graphInstance.value?.addData({
+      nodes: diffNodes,
+      edges: diffEdges,
+    });
+    graphInstance.value?.render();
+  });
+
+  // @ts-ignore
+  graphInstance.value?.on(CUSTOM_EVENTS.COLLAPSE_NODE, (data: RootDataItem) => {
+    const id = data.id;
+    const dataNode = getRootDataItem(id);
+    const currentNode = graphInstance.value?.getNodeData(id);
+
+    if (!dataNode) return;
+
+    dataNode.hideChildren = true;
+    const { nodes: newNodes, edges: newEdges } = generateNodeAndEdge();
+    const { nodes: oldNodes, edges: oldEdges } =
+      graphInstance.value?.getData()!;
+    const { diffNodes, diffEdges } = getDiffData({
+      oldNodes,
+      newNodes,
+      oldEdges,
+      newEdges,
+    });
+
+    graphInstance.value?.updateNodeData([
+      Object.assign({}, currentNode, {
+        data: dataNode,
+      }),
+    ]);
+    graphInstance.value?.removeData({
+      nodes: diffNodes.map((item) => item.id!),
+      edges: diffEdges.map((item) => item.id!),
+    });
+    graphInstance.value?.render();
+  });
+}
+
+function getDiffData(options: {
+  oldNodes: NodeData[];
+  newNodes: NodeData[];
+  oldEdges: EdgeData[];
+  newEdges: EdgeData[];
+}) {
+  const { oldNodes, newNodes, oldEdges, newEdges } = options;
+
+  const diffNodes = differenceBy(oldNodes, newNodes, 'id');
+  const diffEdges = differenceWith(
+    oldEdges,
+    newEdges,
+    (a: EdgeData, b: EdgeData) => {
+      return a.source === b.source && a.target === b.target;
+    },
+  );
+
+  return { diffNodes, diffEdges };
 }
 
 async function handleDialogConfirm(options: {

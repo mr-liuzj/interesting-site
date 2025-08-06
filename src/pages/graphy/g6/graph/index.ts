@@ -4,12 +4,12 @@ import {
   Ref,
   shallowRef,
   getCurrentInstance,
-  ComponentInternalInstance,
   ref,
   watch,
+  onBeforeUnmount,
 } from 'vue';
+import './nodes';
 import { edgeConfig } from './edges';
-import { registerVueNode } from './nodes';
 import { RootData, RootDataItem } from './RootData';
 import { cloneDeep } from 'lodash';
 
@@ -46,7 +46,6 @@ export function useGraph(
   const rootData = ref(cloneDeep(RootData));
   const rootDataMap = new Map<string, RootDataItem>();
 
-  registerVueNode();
   setRootDataMap(rootData.value);
 
   function setRootDataMap(data: RootDataItem[]) {
@@ -170,6 +169,12 @@ export function useGraph(
     window.__graph = graph;
   });
 
+  onBeforeUnmount(() => {
+    graphInstance.value?.off();
+    graphInstance.value?.destroy();
+    window.__graph = undefined;
+  });
+
   watch(
     () => rootData.value,
     (newVal) => {
@@ -185,6 +190,7 @@ export function useGraph(
     rootData,
     getRootDataItem,
     createNodeData,
+    generateNodeAndEdge,
   };
 }
 

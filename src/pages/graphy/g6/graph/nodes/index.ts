@@ -1,17 +1,7 @@
-import type {
-  DisplayObjectConfig,
-  HTMLStyleProps as GHTMLStyleProps,
-} from '@antv/g';
-import {
-  HTML,
-  BaseNodeStyleProps,
-  HTMLStyleProps,
-  register,
-  ExtensionCategory,
-} from '@antv/g6';
-import { AppContext, createVNode, render, VNode } from 'vue';
+import type { HTMLStyleProps as GHTMLStyleProps } from '@antv/g';
+import { HTML, HTMLStyleProps, register, ExtensionCategory } from '@antv/g6';
+import { AppContext, createVNode, render } from 'vue';
 import CustomNode from '../../components/CustomNode.vue';
-import { getGraphInstance } from '..';
 
 const createCustomNode = (
   props: Record<string, any>,
@@ -24,7 +14,7 @@ const createCustomNode = (
   return vnode;
 };
 
-export class VueNode extends HTML {
+class VueNode extends HTML {
   protected getKeyStyle(attributes: Required<HTMLStyleProps>): GHTMLStyleProps {
     return { ...super.getKeyStyle(attributes) };
   }
@@ -50,6 +40,4 @@ export class VueNode extends HTML {
   }
 }
 
-export function registerVueNode() {
-  register(ExtensionCategory.NODE, 'vue-node', VueNode);
-}
+register(ExtensionCategory.NODE, 'vue-node', VueNode);

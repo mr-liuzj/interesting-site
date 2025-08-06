@@ -35,7 +35,6 @@
         >
           <el-button
             type="primary"
-            size="small"
             :icon="Plus"
             circle
             @click="handleAddChild"
@@ -49,22 +48,45 @@
         >
           <el-button
             type="primary"
-            size="small"
             :icon="Edit"
             plain
             circle
             @click="handleEdit"
           />
         </el-tooltip>
-        <el-tooltip
-          content="收起所有子节点"
-          placement="bottom"
-          :show-after="0"
-          :hide-after="0"
-        >
-          <el-button size="small" :icon="ArrowUp" circle />
-        </el-tooltip>
+        <template v-if="nodeData?.children?.length">
+          <el-tooltip
+            :content="nodeData?.hideChildren ? '展开' : '收起'"
+            placement="bottom"
+            :show-after="0"
+            :hide-after="0"
+          >
+            <el-button
+              :icon="nodeData?.hideChildren ? ArrowDown : ArrowUp"
+              circle
+              @click="handleChangeHideChildren"
+            />
+          </el-tooltip>
+        </template>
       </div>
+    </div>
+
+    <div v-if="!!nodeData?.pid" class="graphy-g6-node-delete">
+      <el-tooltip
+        content="删除节点"
+        placement="bottom"
+        :show-after="0"
+        :hide-after="0"
+      >
+        <el-button
+          type="danger"
+          size="small"
+          plain
+          :icon="Delete"
+          circle
+          @click="handleDelete"
+        />
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -84,6 +106,8 @@ import {
   Document,
   InfoFilled,
   ArrowUp,
+  ArrowDown,
+  Delete,
 } from '@element-plus/icons-vue';
 import { RootDataItem } from '../graph/RootData';
 
@@ -106,22 +130,26 @@ const isSelected = computed(() => stateList.value.includes('selected'));
 function updateNodeData() {
   const nodeConfig = graph?.getNodeData(props.nodeId);
   nodeData.value = (nodeConfig?.data as unknown as RootDataItem) ?? {};
-  stateList.value = nodeConfig?.states ?? [];
+  stateList.value = [...(nodeConfig?.states ?? [])];
+}
+
+function bindUpdateNodeData(e: IGraphLifeCycleEvent) {
+  const newData = e.data as NodeData;
+
+  if (props.nodeId !== newData?.id) return;
+
+  if (nodeData.value === newData.data) return;
+
+  updateNodeData();
 }
 
 function bindEvents() {
-  graph?.on(GraphEvent.AFTER_ELEMENT_UPDATE, (e: IGraphLifeCycleEvent) => {
-    const newData = e.data as NodeData;
-
-    if (props.nodeId !== newData?.id) return;
-
-    if (nodeData.value === newData.data) return;
-
-    updateNodeData();
-  });
+  graph?.on(GraphEvent.AFTER_ELEMENT_UPDATE, bindUpdateNodeData);
 }
 
-function unbindEvents() {}
+function unbindEvents() {
+  graph?.off(GraphEvent.AFTER_ELEMENT_UPDATE, bindUpdateNodeData);
+}
 
 function initNode() {
   bindEvents();
@@ -135,6 +163,22 @@ function handleAddChild() {
 
 function handleEdit() {
   graph?.emit(CUSTOM_EVENTS.MODIFY_NODE, nodeData.value);
+}
+
+function handleDelete() {
+  graph?.emit(CUSTOM_EVENTS.DELETE_NODE, nodeData.value);
+}
+
+function handleChangeHideChildren() {
+  if (!nodeData.value) return;
+
+  const hideChildren = !nodeData.value.hideChildren;
+
+  if (hideChildren) {
+    graph?.emit(CUSTOM_EVENTS.COLLAPSE_NODE, nodeData.value);
+  } else {
+    graph?.emit(CUSTOM_EVENTS.EXPAND_NODE, nodeData.value);
+  }
 }
 
 onBeforeUnmount(() => {
@@ -234,6 +278,21 @@ initNode();
         }
       }
     }
+  }
+
+  .graphy-g6-node-delete {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    color: var(--el-color-danger);
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid var(--el-color-danger);
   }
 }
 </style>
