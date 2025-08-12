@@ -7,6 +7,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useGraph } from './graph';
 
 const container = ref<HTMLDivElement>();
+
+useGraph(container);
 </script>

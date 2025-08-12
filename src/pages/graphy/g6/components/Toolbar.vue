@@ -35,15 +35,8 @@
 </template>
 
 <script setup lang="ts">
-import {
-  Aim,
-  Edit,
-  Plus,
-  Refresh,
-  ZoomIn,
-  ZoomOut,
-} from '@element-plus/icons-vue';
-import { computed, inject, nextTick, Ref, ref } from 'vue';
+import { Aim, ZoomIn, ZoomOut } from '@element-plus/icons-vue';
+import { inject, nextTick, Ref, ref } from 'vue';
 import {
   DEFAULT_ZOOM,
   MIN_ZOOM,
@@ -59,6 +52,8 @@ defineOptions({
 
 /** 获取 graphInstance 实例 父级graph实例存在后才会渲染 */
 const graphInstance = inject<Ref<Graph>>('graphInstance')!;
+
+const graph = graphInstance.value;
 
 const zoom = ref(graphInstance.value?.getZoom() || DEFAULT_ZOOM);
 
@@ -80,29 +75,29 @@ function handleZoomTo(zoomValue: number) {
 
   zoom.value = newZoom;
 
-  graphInstance.value?.zoomTo(newZoom, {
+  graph.zoomTo(newZoom, {
     duration: DEFAULT_ANIMATION_DURATION,
   });
 }
 
 async function handleCenter() {
-  await graphInstance.value.fitCenter({
+  await graph.fitCenter({
     duration: DEFAULT_ANIMATION_DURATION,
   });
 
-  await graphInstance.value.zoomTo(DEFAULT_ZOOM, {
+  await graph.zoomTo(DEFAULT_ZOOM, {
     duration: DEFAULT_ANIMATION_DURATION,
   });
 
   zoom.value = DEFAULT_ZOOM;
 }
 
-graphInstance.value?.on(
+graph.on(
   CanvasEvent.WHEEL,
   throttle(
     () => {
       nextTick(() => {
-        const currentZoom = graphInstance.value?.getZoom();
+        const currentZoom = graph.getZoom();
         zoom.value = Number(currentZoom.toFixed(1));
       });
     },

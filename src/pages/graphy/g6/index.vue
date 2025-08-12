@@ -41,16 +41,13 @@ const state = reactive({
 provide('graphInstance', graphInstance);
 
 function bindGraphEvents() {
-  graphInstance.value?.on(
-    CUSTOM_EVENTS.MODIFY_NODE,
-    // @ts-ignore
-    (data: RootDataItem) => {
-      modifyNodeDialog.value?.open({
-        isEdit: true,
-        data,
-      });
-    },
-  );
+  // @ts-ignore
+  graphInstance.value?.on(CUSTOM_EVENTS.MODIFY_NODE, (data: RootDataItem) => {
+    modifyNodeDialog.value?.open({
+      isEdit: true,
+      data,
+    });
+  });
 
   // @ts-ignore
   graphInstance.value?.on(CUSTOM_EVENTS.ADD_NODE, (data: RootDataItem) => {
