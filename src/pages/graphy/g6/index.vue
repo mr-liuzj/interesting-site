@@ -14,7 +14,7 @@ import { useGraph, CUSTOM_EVENTS } from './graph';
 import Toolbar from './components/Toolbar.vue';
 import ModifyNodeDialog from './components/ModifyDialog.vue';
 import { RootDataItem } from './graph/RootData';
-import { uniqueId, differenceBy, differenceWith } from 'lodash';
+import { uniqueId, differenceBy, differenceWith, map, filter } from 'lodash';
 import { EdgeData, NodeData } from '@antv/g6';
 import { ElMessageBox } from 'element-plus';
 
@@ -63,9 +63,10 @@ function bindGraphEvents() {
     async (data: RootDataItem) => {
       if (!data.pid) return;
 
-      const parentNode = getRootDataItem(data.pid);
+      const parent = getRootDataItem(data.pid);
+      const parentNode = graphInstance.value?.getNodeData(data.pid);
 
-      if (!parentNode) return;
+      if (!parent) return;
 
       await ElMessageBox.confirm('确定删除该节点以及节点下的所有吗？', '提示', {
         confirmButtonText: '确定',
@@ -73,9 +74,7 @@ function bindGraphEvents() {
         type: 'warning',
       });
 
-      parentNode.children = parentNode.children?.filter(
-        (item) => item.id !== data.id,
-      );
+      parent.children = parent.children?.filter((item) => item.id !== data.id);
 
       const { nodes: newNodes, edges: newEdges } = generateNodeAndEdge();
       const { nodes: oldNodes, edges: oldEdges } =
@@ -87,6 +86,15 @@ function bindGraphEvents() {
         oldEdges,
         newEdges,
       });
+
+      graphInstance.value?.updateNodeData([
+        Object.assign({}, parentNode, {
+          data: {
+            ...(parentNode?.data ?? []),
+            children: parent.children,
+          },
+        }),
+      ]);
 
       graphInstance.value?.removeData({
         nodes: diffNodes.map((item) => item.id!),
@@ -220,11 +228,31 @@ async function handleDialogConfirm(options: {
       Object.assign(parent, {
         children: [...(parent.children ?? []), newItem],
       });
+      parent.hideChildren = false;
+
+      const newNodes = map(parent.children, createNodeData);
+      const AllNodes = graph.getNodeData();
+
+      const curNodes = filter(
+        newNodes,
+        (item) => !AllNodes.find((node) => node.id === item.id),
+      );
 
       graph.addData({
-        nodes: [createNodeData(newItem)],
-        edges: [{ source: options.id, target: newItemId }],
+        nodes: curNodes,
+        edges: map(curNodes, (item) => ({
+          source: parent.id,
+          target: item.id,
+        })),
       });
+
+      const parentNode = graph.getNodeData(parent.id);
+      graph.updateNodeData([
+        {
+          ...parentNode,
+          data: { ...parent },
+        },
+      ]);
 
       await graph.render();
     }
