@@ -23,8 +23,10 @@ function handleMenuItemClick(item: MenuItem) {
   router.push(item.path);
 }
 
-function renderMenuNode() {
-  function renderTitle(item: MenuItem) {
+// 生成菜单节点
+function generateMenuNodes() {
+  // 渲染菜单项标题
+  function renderMenuItemTitle(item: MenuItem) {
     if (!item.icon) return item.title;
 
     return [
@@ -37,6 +39,7 @@ function renderMenuNode() {
     ];
   }
 
+  // 渲染菜单项
   function renderMenuItem(item: MenuItem) {
     return h(
       ElMenuItem,
@@ -45,10 +48,11 @@ function renderMenuNode() {
         index: item.path,
         onClick: () => handleMenuItemClick(item),
       },
-      () => renderTitle(item),
+      () => renderMenuItemTitle(item),
     );
   }
 
+  // 渲染子菜单
   function renderSubMenu(item: MenuItem) {
     return h(
       ElSubMenu,
@@ -58,14 +62,15 @@ function renderMenuNode() {
       },
       {
         default: item.children?.length
-          ? () => renderNodes(item.children!)
+          ? () => renderMenuItems(item.children!)
           : undefined,
-        title: () => renderTitle(item),
+        title: () => renderMenuItemTitle(item),
       },
     );
   }
 
-  function renderNodes(items: MenuItem[]) {
+  // 渲染菜单项数组
+  function renderMenuItems(items: MenuItem[]) {
     return map(items, (item) => {
       if (item.children?.length) {
         return renderSubMenu(item);
@@ -75,7 +80,7 @@ function renderMenuNode() {
     });
   }
 
-  return renderNodes(menuConfig.value ?? []);
+  return renderMenuItems(menuConfig.value!);
 }
 
 watchEffect(() => {
@@ -100,7 +105,7 @@ watchEffect(() => {
           :default-active="currentPath"
           class="top-layout-header-menu"
         >
-          <component :is="renderMenuNode" />
+          <component :is="generateMenuNodes" />
         </el-menu>
       </div>
 
@@ -157,6 +162,9 @@ watchEffect(() => {
 
   .top-layout-header-action {
     width: max-content;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
   ::v-deep(.el-sub-menu.el-sub-menu__hide-arrow:last-child) {
